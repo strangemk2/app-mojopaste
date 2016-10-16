@@ -73,7 +73,7 @@ post
 
   return $c->render('pastebin', placeholder => 'You neeed to enter some characters!', status => 400)
     unless $paste =~ /\w/;
-  my $id = $c->param('id') || substr Mojo::Util::md5_sum($$ . time . $ID++), 0, 12;
+  my $id = $c->param('id') || substr Mojo::Util::hmac_sha1_sum($$ . time . $ID++), 0, 16;
   $c->delay(
     sub { $c->paste($id => $paste, shift->begin) },
     sub {
