@@ -52,13 +52,14 @@ helper paste => sub {
 
 get '/' => {layout => 'mojopaste'} => sub {
   my $c = shift;
-  return unless my $id = $c->param('edit');
+  my $id = $c->param('edit');
+  return $c->render(id => $id) unless ($id);
   return $c->delay(
     sub { $c->paste($id => shift->begin) },
     sub {
       my ($delay, $err, $paste) = @_;
       return $c->no_such_paste($err || 'Could not find paste') if $err or !$paste;
-      return $c->param(paste => $paste)->render;
+      return $c->param(paste => $paste)->render(id => $id);
     },
   );
   },
@@ -72,7 +73,7 @@ post
 
   return $c->render('pastebin', placeholder => 'You neeed to enter some characters!', status => 400)
     unless $paste =~ /\w/;
-  my $id = substr Mojo::Util::md5_sum($$ . time . $ID++), 0, 12;
+  my $id = $c->param('id') || substr Mojo::Util::md5_sum($$ . time . $ID++), 0, 12;
   $c->delay(
     sub { $c->paste($id => $paste, shift->begin) },
     sub {
@@ -269,6 +270,7 @@ __DATA__
   %= include 'powered_by'
 </nav>
 %= text_area 'paste', placeholder => $placeholder, tabindex => 1
+%= hidden_field 'id' => $id
 % end
 @@ chart.html.ep
 % if ($embed =~ /nav/) {
