@@ -52,8 +52,7 @@ helper paste => sub {
 
 get '/' => {layout => 'mojopaste'} => sub {
   my $c = shift;
-  my $id = $c->param('edit');
-  return $c->render(id => $id) unless ($id);
+  return $c->render(id => '') unless my $id = $c->param('edit');
   return $c->delay(
     sub { $c->paste($id => shift->begin) },
     sub {
