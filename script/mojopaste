@@ -5,11 +5,14 @@ use Mojo::Util qw(encode decode spurt slurp);
 use File::Path ();
 use File::Spec;
 use Mojo::JSON 'true';
+use Git::Wrapper;
+use Try::Tiny;
 
 plugin 'config' if $ENV{MOJO_CONFIG};
 
 app->defaults(
   enable_charts => app->config('enable_charts') // $ENV{PASTE_ENABLE_CHARTS},
+  enable_git    => app->config('enable_git') // 1,
   embed         => 'description,graph,heading,nav',
   error         => '',
   paste         => '',
@@ -37,10 +40,25 @@ helper paste => sub {
     return $c->$cb("Hacking attempt! paste_id=($id)", "");
   }
 
+  my $git;
+  if (app->defaults('enable_git')) {
+    $git = Git::Wrapper->new($paste_dir);
+    try {
+      $git->status;
+    }
+    catch {
+      $git->init;
+    };
+  }
+
   local ($!, $@);
   eval {
     if ($write) {
       spurt(encode('UTF-8', $paste), File::Spec->catfile($paste_dir, $id));
+      if (app->defaults('enable_git')) {
+        $git->add($id);
+        $git->commit({ message => "update $id" });
+      }
     }
     else {
       $paste = decode('UTF-8', slurp(File::Spec->catfile($paste_dir, $id)));
