@@ -12,7 +12,7 @@ plugin 'config' if $ENV{MOJO_CONFIG};
 
 app->defaults(
   enable_charts => app->config('enable_charts') // $ENV{PASTE_ENABLE_CHARTS},
-  enable_git    => app->config('enable_git') // 1,
+  enable_git    => app->config('enable_git') // 0,
   embed         => 'description,graph,heading,nav',
   error         => '',
   paste         => '',
