@@ -9,6 +9,7 @@ use Git::Wrapper;
 use Try::Tiny;
 
 plugin 'config' if $ENV{MOJO_CONFIG};
+plugin SetUserGroup => { user => app->config('user'), group => app->config('group') } if (app->config('user') && app->config('group'));
 
 app->defaults(
   enable_charts => app->config('enable_charts') // $ENV{PASTE_ENABLE_CHARTS},
