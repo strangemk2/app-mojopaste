@@ -11,6 +11,17 @@ use Try::Tiny;
 plugin 'config' if $ENV{MOJO_CONFIG};
 plugin SetUserGroup => { user => app->config('user'), group => app->config('group') } if (app->config('user') && app->config('group'));
 
+if (app->config('http_redirect')) {
+  app->hook(before_dispatch => sub {
+    my $c = shift;
+    my $request_url = $c->req->url->to_abs;
+    if ($request_url->scheme eq 'http') {
+      $request_url->scheme('https');
+      $c->redirect_to($request_url);
+    }
+  });
+}
+
 app->defaults(
   enable_charts => app->config('enable_charts') // $ENV{PASTE_ENABLE_CHARTS},
   enable_git    => app->config('enable_git') // 0,
