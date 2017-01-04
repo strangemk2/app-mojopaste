@@ -128,6 +128,10 @@ get '/:paste_id', sub {
         $c->res->headers->content_type('text/plain; charset=utf-8');
         $c->render(text => $paste);
       }
+      elsif ($format eq 'md') {
+        $c->res->headers->content_type('text/html; charset=utf-8');
+        $c->render(layout => 'markdown', paste => $paste);
+      }
       else {
         $c->res->headers->header('X-Plain-Text-URL' => $c->url_for(format => 'txt')->userinfo(undef)->to_abs);
         $c->stash(embed => $c->param('embed')) if $c->param('embed');
@@ -292,6 +296,37 @@ __DATA__
 </html>
 @@ layouts/mojopaste.txt.ep
 %= content
+@@ layouts/markdown.md.ep
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+
+    <script src="https://cdn.bootcss.com/showdown/1.5.5/showdown.min.js"></script>
+    <style type="text/css">@charset "UTF-8";[ng\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>
+    <link href="http://fonts.googleapis.com/css?family=Old+Standard+TT:400,400italic,700" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,700,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/foundation/5.5.2/css/foundation.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="http://showdownjs.github.io/demo/css/style.css">
+
+    <title><%= title %></title>
+
+    <script>
+        function load_showdown()
+        {
+            var converter = new showdown.Converter();
+            converter.setOption("tasklists", true);
+            converter.setOption("tables", true);
+            var text = document.body.innerHTML;
+            var html = converter.makeHtml(text);
+            document.body.innerHTML = html;
+        }
+    </script>
+</head>
+<body onload="load_showdown()">
+<%= $paste %>
+</body>
+</html>
 @@ pastebin.html.ep
 %= form_for 'invalid', method => 'post', begin
 <nav>
@@ -349,4 +384,6 @@ try {
 @@ powered_by.html.ep
 <a class="btn powered-by" href="https://metacpan.org/pod/App::mojopaste#DESCRIPTION" title="Get mojopaste">Powered by Mojopaste</a>
 @@ show.txt.ep
+Paste not found: <%= $paste_id %>
+@@ show.md.ep
 Paste not found: <%= $paste_id %>
